@@ -28,8 +28,7 @@ function getCurrentTabUrl(callback) {
     // See https://developer.chrome.com/extensions/tabs#type-Tab
     var url = tab.url;
 
-    // tab.url is only available if the "activeTab" permission is declared.
-    // If you want to see the URL of other tabs (e.g. after removing active:true
+    // tab.url is only available if the "activeTab" permission is declared.  // If you want to see the URL of other tabs (e.g. after removing active:true
     // from |queryInfo|), then the "tabs" permission is required to see their
     // "url" properties.
     console.assert(typeof url == 'string', 'tab.url should be a string');
@@ -142,6 +141,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		} else if (url.match(/exhentai/g)) {
         site = 2;
         doc_type = "exhentai";
+		} else if (url.match(/tv5/g)) {
+        site = 3;
+        doc_type = "tv5";
 		} else {
        site = 0;
 		}
@@ -200,3 +202,4 @@ document.addEventListener('DOMContentLoaded', function() {
      
   });
 });
+

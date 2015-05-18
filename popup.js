@@ -92,6 +92,41 @@ function renderStatus(statusText) {
 }
 
 
+function checkExistSearchString(searchString, callback, errorCallback) {
+  // Google image search - 100 searches per day.
+ 
+
+	var searchUrl = 'https://hunterzero.iriscouch.com/searchstring/_design/query/_view/bySearchString?reduce=true&key="' + searchString + '"';
+
+ var x = new XMLHttpRequest();
+  x.open('GET', searchUrl);
+  // The Google image search API responds with JSON, so let Chrome parse it.
+  x.responseType = 'application/json';
+  x.setRequestHeader('Content-Type', 'application/json');
+  x.onload = function() {
+    // Parse and process the response from Google Image Search.
+    var response = JSON.parse(x.response);
+    var firstResult = 0;
+    
+    if (!response ) {
+      errorCallback('No response from Iris Couch!');
+      return;
+    }
+    if (response.rows.length) {
+       firstResult = response.rows[0].value;
+		}
+    // Take the thumbnail instead of the full image to get an approximately
+    // consistent image size.
+    callback(firstResult);
+  };
+  x.onerror = function() {
+    errorCallback('Network error.');
+  };
+  x.send();
+}
+
+
+
 
 function checkExistUrl(url, callback, errorCallback) {
   // Google image search - 100 searches per day.
@@ -144,6 +179,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		} else if (url.match(/tv5/g)) {
         site = 3;
         doc_type = "tv5";
+		} else if (url.match(/youtube/g)) {
+        site = 4;
+        url = url.replace(/&/g , "^");
+        doc_type = "youtube";
+	
 		} else {
        site = 0;
 		}
@@ -202,4 +242,46 @@ document.addEventListener('DOMContentLoaded', function() {
      
   });
 });
+
+
+function addTextToCouch(info)
+{
+ var searchstring = info.selectionText;
+
+ 	checkExistSearchString(searchstring, function(resvalue) {
+  	if  (resvalue) {
+      var a = 1;
+   	} else {
+  		 uuid =  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+    		return v.toString(16);
+});
+
+        var data = {};
+        data.url = searchstring;
+        data.type = 'searchName';
+
+    		var postUrl = 'https://hunterzero.iriscouch.com/searchstring/' + uuid;
+ 				var x = new XMLHttpRequest();
+  			x.open('PUT', postUrl);
+  			x.responseType = 'json';
+  			x.setRequestHeader('Content-Type', 'application/json');
+  			x.onloadend = function() {
+    		// Parse and process the response from Google Image Search.
+    		//	renderStatus('Uploaded ' + uuid);
+  			};
+  			x.onerror = function() {
+    			alert('Network error.');
+  			};
+  			x.send(JSON.stringify(data));
+
+			}
+
+    }, function(errorMessage) {
+      alert('Cannot insert' + errorMessage);
+    });
+
+}
+
+chrome.contextMenus.create({title: "Add name to couch", contexts:["selection"], onclick: addTextToCouch});
 

@@ -126,6 +126,41 @@ function checkExistSearchString(searchString, callback, errorCallback) {
 }
 
 
+function checkExistImageUrl(imageurl, callback, errorCallback) {
+  // Google image search - 100 searches per day.
+ 
+
+	var searchUrl = 'https://hunterzero.iriscouch.com/image/_design/query/_view/byUrl?reduce=true&key="' + imageurl + '"';
+
+ var x = new XMLHttpRequest();
+  x.open('GET', searchUrl);
+  // The Google image search API responds with JSON, so let Chrome parse it.
+  x.responseType = 'application/json';
+  x.setRequestHeader('Content-Type', 'application/json');
+  x.onload = function() {
+    // Parse and process the response from Google Image Search.
+    var response = JSON.parse(x.response);
+    var firstResult = 0;
+    
+    if (!response ) {
+      alert('No response from Iris Couch!');
+      return;
+    }
+    if (response.rows.length) {
+       firstResult = response.rows[0].value;
+		}
+    // Take the thumbnail instead of the full image to get an approximately
+    // consistent image size.
+    callback(firstResult);
+  };
+  x.onerror = function() {
+    alert('Network error.');
+  };
+  x.send();
+}
+
+
+
 
 
 function checkExistUrl(url, callback, errorCallback) {
@@ -283,5 +318,68 @@ function addTextToCouch(info)
 
 }
 
+
+function addImageToCouch(info)
+{
+ var imageUrl = info.srcUrl;
+ uuid =  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+     return v.toString(16);
+     });
+
+ var data = {};
+ data.url = imageUrl;
+ data.type = 'imageUrl';
+
+ var postUrl = 'https://hunterzero.iriscouch.com/image/' + uuid;
+ var x = new XMLHttpRequest();
+ x.open('PUT', postUrl);
+ x.responseType = 'json';
+ x.setRequestHeader('Content-Type', 'application/json');
+ x.onloadend = function() {
+   // Parse and process the response from Google Image Search.
+   //	renderStatus('Uploaded ' + uuid);
+   };
+ x.onerror = function() {
+    			alert('Network error.');
+  			};
+ x.send(JSON.stringify(data));
+
+}
+
+function addImageToCouchx(info)
+{
+ var imageUrl = info.srcUrl;
+ uuid =  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+     return v.toString(16);
+     });
+
+ var data = {};
+ data.url = imageUrl;
+ data.type = 'imageUrlX';
+
+ var postUrl = 'https://hunterzero.iriscouch.com/image/' + uuid;
+ var x = new XMLHttpRequest();
+ x.open('PUT', postUrl);
+ x.responseType = 'json';
+ x.setRequestHeader('Content-Type', 'application/json');
+ x.onloadend = function() {
+   // Parse and process the response from Google Image Search.
+   //	renderStatus('Uploaded ' + uuid);
+   };
+ x.onerror = function() {
+    			alert('Network error.');
+  			};
+ x.send(JSON.stringify(data));
+
+}
+
+
+
+
+
 chrome.contextMenus.create({title: "Add name to couch", contexts:["selection"], onclick: addTextToCouch});
 
+chrome.contextMenus.create({title: "Add image url to couch", contexts:["image"], onclick: addImageToCouch});
+//chrome.contextMenus.create({title: "Add image urlx to couch", contexts:["image"], onclick: addImageToCouchx});
